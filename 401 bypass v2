@@ -111,7 +111,7 @@ async def test_paths_async(base_uri, path_list, max_workers=10):
     # Generate all header combinations (single and pairs)
     header_combinations = []
     for h in auth_headers:
-        header_combinations Ani.append(h)
+        header_combinations.append(h)
     for h1, h2 in combinations(auth_headers, 2):
         combined = {**h1, **h2}
         header_combinations.append(combined)
