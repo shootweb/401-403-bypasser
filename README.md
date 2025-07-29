@@ -1,4 +1,4 @@
-# 401 Bypass Tester
+# 401/403 Bypass Tester
 
 **401 Bypass Tester** is an advanced asynchronous Python tool that automates testing of common and obscure techniques to bypass HTTP 401 Unauthorized restrictions in APIs or web applications. It leverages combinations of manipulated headers, crafted URL payloads, and multiple HTTP methods to detect possible access control misconfigurations.
 
